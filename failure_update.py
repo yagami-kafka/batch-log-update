@@ -4,7 +4,7 @@ import pytz
 import time
 from snowflake.connector import connect
 from threading import Thread
-from flask import Flask, render_template
+from flask import Flask, render_template ,render_template_string
 import logging
 
 logging.basicConfig(level=logging.WARNING)
@@ -28,16 +28,7 @@ def home():
     logger.info(np_time)
     print(np_time)
     print("--------------------------------")
-    home_template = '''
-        <html>
-            <body>
-                <h1>Batch Log Update</h1>
-                <p>This page is alive.</p>
-                <a href="{{ url_for('batch_log') }}"><button>View Batch Log</button></a>
-            </body>
-        </html>
-    '''
-    return home_template
+    return render_template('home.html')
 
 @app.route('/batch-log')
 def batch_log():
