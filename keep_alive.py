@@ -19,7 +19,7 @@ def home():
     logger.info(np_time)
     print(np_time)
     print("--------------------------------")
-    return "Check in checkout alive"
+    return "Batch Log update alive"
 
 
 def run():
