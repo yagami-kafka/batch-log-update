@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import pytz
 import time
 from snowflake.connector import SnowflakeConnection
+from keep_alive import keep_alive
 
 # Get Snowflake credentials from environment variables
 user = os.environ.get('SNOWFLAKE_USER')
@@ -55,6 +56,8 @@ def run_at_specific_time(sql_query, target_time):
       print(f'Sleep duration: {sleep_duration}')
       time.sleep(sleep_duration)
 
+
+keep_alive()
 # Set target time for execution (6:00 AM Nepal Time)
 nepal_tz = pytz.timezone('Asia/Kathmandu')
 curr_time = datetime.now(nepal_tz)
