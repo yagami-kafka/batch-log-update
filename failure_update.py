@@ -4,7 +4,7 @@ import pytz
 import time
 from snowflake.connector import connect
 from threading import Thread
-from flask import Flask, render_template_string
+from flask import Flask, render_template
 import logging
 
 logging.basicConfig(level=logging.WARNING)
@@ -28,7 +28,16 @@ def home():
     logger.info(np_time)
     print(np_time)
     print("--------------------------------")
-    return "Batch Log update alive"
+    home_template = '''
+        <html>
+            <body>
+                <h1>Batch Log Update</h1>
+                <p>This page is alive.</p>
+                <a href="{{ url_for('batch_log') }}"><button>View Batch Log</button></a>
+            </body>
+        </html>
+    '''
+    return home_template
 
 @app.route('/batch-log')
 def batch_log():
@@ -43,78 +52,19 @@ def batch_log():
     
     sql_query = """
     SELECT * FROM ROBLING_UAT_DB.DW_DWH.DWH_C_BATCH_LOG
-    WHERE business_date = (SELECT MAX(BUSINESS_DATE) FROM ROBLING_UAT_DB.DW_DWH.DWH_C_BATCH_LOG);
+    WHERE business_date = (SELECT MAX(BUSINESS_DATE) FROM ROBLING_UAT_DB.DW_DWH.DWH_C_BATCH_LOG) ORDER BY STATUS DESC;
     """
     
     try:
         cur = conn.cursor()
-        cur.execute(sql_query)
+        cur.execute(sql_query,_is_internal=True)
         rows = cur.fetchall()
         columns = [desc[0] for desc in cur.description]
     finally:
         cur.close()
         conn.close()
-    
-    table_template = """
-    <html>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.css" />
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.js"></script>
-    <style>
-    .styled-table {{
-        border-collapse: collapse;
-        margin: 25px 0;
-        font-size: 0.9em;
-        font-family: sans-serif;
-        min-width: 400px;
-        width: -webkit-fill-available;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-    }}
-    .styled-table thead tr {{
-        background-color: #009879;
-        color: #ffffff;
-        text-align: left;
-    }}
-    .styled-table th,
-    .styled-table td {{
-        padding: 12px 15px;
-    }}
-    .styled-table tbody tr {{
-        border-bottom: 1px solid #dddddd;
-    }}
-    .styled-table tbody tr:nth-of-type(even) {{
-        background-color: #f3f3f3;
-    }}
-    .styled-table tbody tr:last-of-type {{
-        border-bottom: 2px solid #009879;
-    }}
-    .styled-table tbody tr.active-row {{
-        font-weight: bold;
-        color: #009879;
-    }}
-    </style>
-    <table id="batch-log-table" class="styled-table">
-        <thead>
-            <tr>
-                {0}
-            </tr>
-        </thead>
-        <tbody>
-            {1}
-        </tbody>
-    </table>
-    <script type="text/javascript">
-        $(document).ready(function() {{
-            $('#batch-log-table').DataTable();
-        }});
-    </script>
-    </html>
-    """
-    
-    header_html = ''.join(f'<th>{col}</th>' for col in columns)
-    rows_html = ''.join('<tr class="active-row">' + ''.join(f'<td>{cell}</td>' for cell in row) + '</tr>' for row in rows)
-    
-    return render_template_string(table_template.format(header_html, rows_html))
+    return render_template('batch_log_template.html', headers=columns, data=rows)
+
 
 def run():
     app.run(host='0.0.0.0', port=8080)
@@ -139,12 +89,12 @@ def run_at_specific_time(sql_query, target_time):
             )
             try:
                 cur = ctx.cursor()
-                cur.execute(sql_query)
+                cur.execute(sql_query,_is_internal=True)
                 print(f"Successfully updated DWH_C_BATCH_LOG table at {now}")
                 cur.close()
             finally:
                 ctx.close()
-            break
+            time.sleep(60)
         else:
             print(f"Waiting to run script. Current time: {now}")
             sleep_duration = (target_time - now).total_seconds()

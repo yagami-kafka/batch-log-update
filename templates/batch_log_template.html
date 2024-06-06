@@ -1,0 +1,79 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.css" />
+<script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.js"></script>
+<style>
+    .container {
+        max-width: 700px; /* adjust this value to set the desired width */
+        margin: 0 auto;
+    }
+    .styled-table {
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 0.7em;
+        font-family: sans-serif;
+        min-width: 400px;
+        width: 80%;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    }
+    .styled-table thead tr {
+        background-color: #009879;
+        color: #ffffff;
+        text-align: left;
+    }
+    .styled-table th,
+    .styled-table td {
+        padding: 12px 15px;
+    }
+    .styled-table tbody tr {
+        border-bottom: 1px solid #dddddd;
+    }
+    .styled-table tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3;
+    }
+    .styled-table tbody tr:last-of-type {
+        border-bottom: 2px solid #009879;
+    }
+    .table-container {
+        height: auto; /* adjust this value to set the desired height */
+        overflow-y: auto;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="table-container">
+        <table id="batch-log-table" class="styled-table">
+            <thead>
+                <tr>
+                    {% for header in headers %}
+                    <th>{{ header }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data %}
+                <tr>
+                    {% for item in row %}
+                    <td>{{ item }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#batch-log-table').DataTable({
+            "scrollY": "500px",
+            "scrollCollapse": true,
+            "paging": false,
+            "fixedColumns": true,
+            "fixedHeader": true
+        });
+    });
+</script>
+</body>
+</html>
